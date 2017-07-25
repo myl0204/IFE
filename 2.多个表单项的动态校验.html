@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>多个表单项的动态校验</title>
+	<style>
+		form{
+			width: 500px;margin: 150px auto;
+		}
+		label{
+			padding-left: 32px
+		}
+		div:nth-of-type(3) label{
+			padding-left: 0;
+		}
+		div{
+			margin: 20px;
+		}
+		input{
+			text-indent: 5px;width: 300px;border:1px solid #cccccc;border-radius: 5px
+		}
+		span.msg{
+			padding-left: 68px;
+		}
+	</style>
+</head>
+<body>
+	<form action="" class="signUp" name="form">
+		<fieldset>
+			<div>
+				<label for="name">名称</label>
+				<input type="text" id="name" name="名称">
+				<span class="msg"></span>
+			</div>
+			<div>
+				<label for="password">密码</label>
+				<input type="password" id="password" name="密码" >
+				<span class="msg"></span>
+			</div>
+			<div>
+				<label for="pswdConfirm">密码确认</label>
+				<input type="password" id="pswdConfirm" name="确认密码" >
+				<span class="msg"></span>
+			</div>
+			<div>
+				<label for="mail">邮箱</label>
+				<input type="email" id="mail" name="邮箱" >
+				<span class="msg"></span>
+			</div>
+			<div>
+				<label for="telephone">手机</label>
+				<input type="tel" id="telephone" name="手机号">
+				<span class="msg"></span>
+			</div>
+		
+			<div><button>提交</button></div>
+		</fieldset>
+	</form>
+	<script>
+		var form = document.forms.form;
+		
+		/**
+		 * [verify description]
+		 * @param  {ElementNode} node   [要校验的表单]
+		 * @param  {Regexp} regexp [校验规则]
+		 */
+		function verify(node,regexp) {
+			var cur_element = node.name,msg,color,str = node.value
+			if(str == "") {
+				showMsg(node,cur_element+'不能为空','#dd0011')
+			}else {
+				switch(cur_element){
+					case '名称' : {
+						var i,count=0;
+						for(i = 0 ; i < str.length ; i++,count++) {
+							if( regexp.test(str.charAt(i))){ //count为长度计量，当检测到汉字多加一次1
+								count++
+							}
+						}
+						if(count < 4 || count > 16){
+							showMsg(node,'长度错误','#dd0011')
+						}else {
+							showMsg(node,'名称格式正确','#60b74c')
+						}
+					}
+					break;
+
+					case '密码' : {
+						var i,count = 0,color='#dd0011'
+						if(str.length < 6) {
+							msg = '长度必须大于6位'
+						}else if(!regexp.test(str)){
+							msg = '必须包含字母'
+						}else {
+							msg = '密码可用',color='#60b74c'
+						}
+						showMsg(node,msg,color)
+					}
+					break;
+
+					case '确认密码' : {
+						str !== form[2].value ? (msg = '密码输入不一致',color='#dd0011' ): (msg = '密码相同',color='#60b74c')
+						showMsg(node,msg,color)
+					}
+					break;
+
+					case '邮箱' : {
+						regexp.test(str)?(msg='邮箱格式正确',color='#60b74c') : (msg='邮箱格式错误',color='#dd0011')
+						showMsg(node,msg,color)
+					}
+					break;
+
+					case '手机号' : {
+						regexp.test(str)?(msg='手机号格式正确',color='#60b74c') : (msg='手机号格式错误',color='#dd0011')
+						showMsg(node,msg,color)
+					}
+				}
+			}
+
+		}
+		
+		function showMsg(node,str,color) {
+			node.nextElementSibling.textContent = str;
+			node.nextElementSibling.style.color = color;
+			node.style.borderColor = color;
+		}
+
+		var normalMsg = ['必填，长度4~16','必须包含字母，长度6位','再次输入相同密码','请输入邮箱','请输入手机号'],
+			regArr = [/.*[\u4e00-\u9fa5]+.*/,/[^0-9]/,"",/.*@.*\.[A-z]+$/,/^1\d{10}$/]
+		for(let i = 1; i < form.length-1 ; i++) {
+			form[i].addEventListener('focus',function(){
+				showMsg(form[i],normalMsg[i-1],'#cccccc')
+			})
+		}
+
+		for(let i = 1; i < form.length-1 ; i++) {
+			form[i].addEventListener('blur',function(){
+				verify(form[i],regArr[i-1])
+			})
+		}
+
+		form.addEventListener('submit',function(event) {
+			event.preventDefault();
+			var colorArr = [];
+			for(var i = 1; i<form.length-1 ; i++) {
+				verify(form[i],regArr[i-1])
+				colorArr.push(form[i].style.borderColor)
+			}
+			if(colorArr.indexOf('rgb(221, 0, 17)') !== -1){
+				alert('输入有误！')
+			}else{
+				alert('没毛病老铁')
+			}
+		})
+	</script>
+</body>
+</html>
