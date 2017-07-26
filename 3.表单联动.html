@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		div.state_company{
+			display: none
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<input type="radio" name="id" id="student" checked>
+		<label for="student">在校生</label>
+		<input type="radio" name="id" id="not_student">
+		<label for="not_student">非在校生</label>
+		<div class="state_stu">
+			<label>学校</label>
+			<select name="city" id="city">
+			  <option value ="0">请选择城市</option>
+			  <option value ="Beijing">北京</option>
+			  <option value="Shanghai">上海</option>
+			  <option value="Hangzhou">杭州</option>
+			</select>
+			<select name="school" id="school">
+			  <option value ="0">请选择大学</option>
+			</select>
+		</div>
+		<div class="state_company">
+			<label for="company">就业单位</label>
+			<input type="text" id="company">
+		</div>
+	</div>
+
+	<script>
+		var city = document.getElementById('city'),
+			school = document.getElementById('school'),
+			student = document.getElementById('student'),
+			notStudent = document.getElementById('not_student'),
+			stateStu = document.querySelector('.state_stu'),
+			stateCompany = document.querySelector('.state_company'),
+			// bj_school = ['北京大学','清华大学','中国人民大学','北京师范大学','其他大学'],
+			// sh_school = ['上海大学','复旦大学','交通大学','华东师范大学','其他'],
+			// hz_school = ['浙江大学','杭州电子科技大学','浙江工业大学','浙江科技学院','其他'];
+
+			bj_school = '\
+				<option value ="0">请选择大学</option>\
+				<option value="bju">北京大学</option>\
+				<option value="pku">清华大学</option>\
+				<option value="rmu">中国人民大学</option>',
+
+			sh_school = '\
+				<option value ="0">请选择大学</option>\
+				<option value="shu">上海大学</option>\
+				<option value="fdu">复旦大学</option>\
+				<option value="cu">交通大学</option>',
+
+			hz_school = '\
+				<option value ="0">请选择大学</option>\
+				<option value="zju">浙江大学</option>\
+				<option value="zust">浙江科技学院</option>\
+				<option value="zjut">浙江工业大学</option>';
+
+		student.addEventListener('click',function() {
+			stateStu.style.display = 'block';
+			stateCompany.style.display = 'none';
+		});
+
+		notStudent.addEventListener('click',function() {
+			stateCompany.style.display = 'block';
+			stateStu.style.display = 'none';
+		})
+
+		city.addEventListener('change',function() {
+			switch(city.value) {
+				case '0' : {
+					school.innerHTML = '<option value ="0">请选择大学</option>'
+				}
+				break;
+
+				case 'Beijing' : {
+					school.innerHTML = bj_school
+				}
+				break;
+
+				case 'Shanghai' : {
+					school.innerHTML = sh_school;
+				}
+				break;
+
+				case 'Hangzhou' : {
+					school.innerHTML = hz_school;
+				}
+				break;
+
+				default: return
+			}
+		})
+	</script>
+</body>
+</html>

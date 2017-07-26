@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.big{
+			position: relative; width: 409px;height: 409px;border: 1px solid black;
+		}
+		.col{
+			float: left;width: 0;height: 409px;border: 1px solid black;border-left: none; box-sizing: border-box;margin-left: 40px;
+		}
+		.row{
+			width: 409px;height: 0px;border: 1px solid black;border-bottom: none; box-sizing: border-box; margin-top: 40px;
+		}
+		.squ{
+			position: absolute;top: 0;left:0;width: 40px;height: 40px;background-color: red;border-top: 10px solid blue;box-sizing: border-box;transition: all 1s linear
+		}
+	</style>
+</head>
+<body>
+	<div class="big">
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="squ"></div>
+	</div>
+	<input type="text" id="command">
+	<button id="go">执行!</button>
+	<script>
+		var squ = document.querySelector('.squ'),
+			command = document.getElementById('command'),
+			go = document.getElementById('go'),
+			squLocation = { /*x,y代表小方块坐标,范围[0-369],
+												direction表示小方块方向,0为上,180为下*/
+				x:0,
+				y:0,
+				direction:0
+			};
+
+		/**
+		 * [move description] 小方块移动的核心函数
+		 */
+		function move() {
+			squ.style.cssText = `transform:rotate(${squLocation.direction}deg);top:${squLocation.y}px;left:${squLocation.x}px`
+		}
+		/**
+		 * [goTop description] 更改坐标，再调用move函数向上移动小方块
+		 * 										 下面3个同理。
+		 */
+		function goTop() {
+			squLocation.y = squLocation.y>=41?squLocation.y-41:squLocation.y
+			move()
+		}
+
+		function goLeft() {
+			squLocation.x=squLocation.x>=41? squLocation.x-41:squLocation.x
+			move()
+		}
+
+		function goBot() {
+			squLocation.y=squLocation.y<369?squLocation.y+41:squLocation.y
+			move()
+		}
+
+		function goRight() {
+			squLocation.x=squLocation.x<369?squLocation.x+41:squLocation.x
+			move()
+		}
+		/**
+		 * [execute description] 执行函数，按下按钮执行，根据指令进行相应的操作。
+		 */
+		function execute() {
+			switch (command.value) {
+				case 'GO' : {
+					while(squLocation.direction<0){
+						squLocation.direction+=360
+					}
+					squLocation.direction = squLocation.direction%360
+					switch(true) {
+						case squLocation.direction == 0 : {
+							goTop()
+						}
+						break;
+
+						case squLocation.direction == 90 : {
+							goLeft()
+						}
+						break;
+
+						case squLocation.direction == 180 : {
+							goBot()
+						}
+						break;
+
+						case squLocation.direction == 270 : {
+							goRight()
+						}
+						break;
+					}
+				}
+				break;
+
+				case 'TUN RIG' : {
+					squLocation.direction = squLocation.direction - 0 + 90;
+					move()
+				}
+				break;
+
+				case 'TUN LEF' : {
+					squLocation.direction = squLocation.direction - 90
+					move()
+				}
+				break;
+
+				case 'TUN BAC' : {
+					squLocation.direction = squLocation.direction -0 + 180
+					move()
+				}
+				break;
+
+				case 'TRA LEF' : {
+					goLeft()
+				}
+				break;
+
+				case 'TRA TOP' : {
+					goTop()
+				}
+				break;
+
+				case 'TRA RIG' : {
+					goRight()
+				}
+				break;
+
+				case 'TRA BOT' : {
+					goBot()
+				}
+				break;
+
+				case 'MOV LEF' : {
+					squLocation.direction = -90;
+					goLeft()
+				}
+				break;
+
+				case 'MOV TOP' : {
+					squLocation.direction = 0;
+					goTop()
+				}
+				break;
+
+				case 'MOV RIG' : {
+					squLocation.direction = 90;
+					goRight()
+				}
+				break;
+
+				case 'MOV BOT' : {
+					squLocation.direction = 180;
+					goBot()
+				}
+				break;
+
+				default :alert('无命令或者命令错误')
+			}
+		}
+
+		go.addEventListener('click',function() {
+			execute()
+		})
+ 	</script>
+</body>
+</html>

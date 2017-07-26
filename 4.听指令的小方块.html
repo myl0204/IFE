@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.big{
+			position: relative; width: 409px;height: 409px;border: 1px solid black;
+		}
+		.col{
+			float: left;width: 0;height: 409px;border: 1px solid black;border-left: none; box-sizing: border-box;margin-left: 40px;
+		}
+		.row{
+			width: 409px;height: 0px;border: 1px solid black;border-bottom: none; box-sizing: border-box; margin-top: 40px;
+		}
+		.squ{
+			position: absolute;top: 0;width: 40px;height: 40px;background-color: red;border-top: 10px solid blue;box-sizing: border-box;
+		}
+	</style>
+</head>
+<body>
+	<div class="big">
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="col"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="row"></div>
+		<div class="squ"></div>
+	</div>
+	<input type="text" id="command">
+	<button id="go">执行!</button>
+	<script>
+		var squ = document.querySelector('.squ'),
+			command = document.getElementById('command'),
+			go = document.getElementById('go'),
+			squLocation = {
+				x:0,
+				y:0,
+				direction:0
+			};
+
+		function move() {
+			squ.style.cssText = `transform:rotate(${squLocation.direction}deg);top:${squLocation.y}px;left:${squLocation.x}px`
+		}
+	
+		function execute() {
+			switch (command.value) {
+				case 'GO' : {
+					while(squLocation.direction<0){
+						squLocation.direction+=360
+					}
+					squLocation.direction = squLocation.direction%360
+					switch(true) {
+						case squLocation.direction == 0 : {
+							squLocation.y = squLocation.y>=41?squLocation.y-41:squLocation.y
+							move()
+						}
+						break;
+
+						case squLocation.direction == 90 : {
+							squLocation.x=squLocation.x<369?squLocation.x+41:squLocation.x
+							move()
+						}
+						break;
+
+						case squLocation.direction == 180 : {
+							squLocation.y=squLocation.y<369?squLocation.y+41:squLocation.y
+							move()
+						}
+						break;
+
+						case squLocation.direction == 270 : {
+							squLocation.x=squLocation.x>=41? squLocation.x-41:squLocation.x
+							move()
+						}
+						break;
+					}
+				}
+				break;
+
+				case 'TUN RIG' : {
+					squLocation.direction = squLocation.direction - 0 + 90;
+					move()
+				}
+				break;
+
+				case 'TUN LEF' : {
+					squLocation.direction = squLocation.direction - 90
+					move()
+				}
+				break;
+
+				case 'TUN BAC' : {
+					squLocation.direction = squLocation.direction - 180
+					move()
+				}
+				break;
+
+				default :alert('无命令或者命令错误')
+			}
+		}
+
+		go.addEventListener('click',function() {
+			execute()
+		})
+ 	</script>
+</body>
+</html>
