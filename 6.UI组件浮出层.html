@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.m-modal{
+			position: fixed;left: 50%;top: 50%;transform: translate(-50%,-50%);width: 400px;z-index: 50;overflow: hidden;
+		}
+		.modal_head{
+			width: 100%;height: 40px;padding-left: 20px; border: 1px solid #000000;line-height: 40px;box-sizing:border-box;color: #ffffff;background-color: #858585;
+		}
+		.modal_body{
+			position:relative;width: 100%;height: 200px;padding: 20px;border: 1px solid #000000;border-top: none;box-sizing: border-box;background-color: #fff
+		}
+		.modal_btn{
+			position: absolute;bottom: 20px;right: 20px;
+		}
+		.modal_btn button{
+			float: right;width: 100px;height:21px;color: #fff;background-color: #585858;border: 1px solid #000;margin-left: 10px;
+		}
+		button.showmodal{
+			position: absolute;left: 50%;top: 50%;
+		}
+		.mask{
+			position: fixed;left: 0;top: 0;right: 0;bottom: 0;width: 100%;background-color: rgba(0,0,0,0.3);
+		}
+	</style>
+</head>
+<body>
+	<button class="showmodal">点我弹窗</button>
+	<script>
+		(function() {
+			//时间发射器emitter
+			var emitter = {
+				//注册事件
+				on:function(event,listener) {
+					var handler = this._handler || (this._handler = {}),
+						cb = handler[event] || (handler[event] = []);
+					cb.push(listener)
+				},
+				//解绑事件
+				off:function(event,listener) {
+					//如果没传任何参数，解绑所有事件
+					if(!event || !this._handler){
+						this._handler = {};
+						return this
+					} 
+					var handler = this._handler;
+
+					if(cb = handler[event]){
+						//如果不指定回调函数，则删除该事件及所有回调。
+						if(!listener) {
+							delete handler[event];
+							return this
+						}
+						//找到事件相应的回调，删除。
+						for(var i = 0 ; i < cb.length ; i++) {
+							if(cb[i] == listener || cb[i].listener == listener) {
+								cb.splice(i,1)
+								return this;
+							}
+						}
+					}
+					return this
+				},
+				//触发事件
+				emit:function(event) {
+					var handler = this._handler,args = [].slice.call(arguments,1);
+					if(!handler || !event || !(cb=handler[event])) return this;
+
+					for(var i = 0 ; i < cb.length ; i++) {
+						cb[i].apply(this,args)
+					}
+					return this
+				},
+				//注册单次事件
+				once:function(event,listener) {
+					var context = this;
+					//on函数，解绑事件以及执行回调。
+					function on() {
+						context.off(event,on);
+						listener.apply(this,arguments)
+					}
+					//把回调挂在在到on上
+					on.listener = listener
+					//注册事件，添加on为回调
+					this.on(event,on)
+
+					return this;
+				}
+			}
+			
+			/**
+			 * [extend 简单的属性赋值，不覆盖目标对象中和源对象相同部分]
+			 * @param  {Object} target [目标对象]
+			 * @param  {Object} source [源对象]
+			 * @return {Object}        [目标对象]
+			 */
+			function extend(target,source) {
+				for(var k in source) {
+					if(typeof target[k] === 'undefined') {
+						target[k] = source[k]
+					}
+				}
+				return target;
+			}
+	
+
+			/**
+			 * [html2node 将html转换成节点]
+			 * @param  {String} str [模板字符串]
+			 * @return {HTMLelement} [元素节点]
+			 */
+			function html2node(str) {
+				var container = document.createElement('div');
+				container.innerHTML = str;
+				// console.log(container.children[0])
+				return container.children[0]
+			}
+
+			// 弹窗模板
+			var template = '\
+			<div class="m-modal">\
+				<div class="modal_head">标题</div>\
+				<div class="modal_body">内容</div>\
+				<div class="modal_btn">\
+						<button class="cancel">取消</button><button class="confirm">确认</button>\
+					</div>\
+			</div>'
+
+			function Modal(options) {
+				options = options || {};
+
+				this.container = this._layout.cloneNode(true);
+				//标题部分
+				this.head = this.container.querySelector('.modal_head');
+				//内容区
+				this.body = this.container.querySelector('.modal_body');
+
+				extend(this,options)
+				//执行初始化函数
+				this._init();
+			}
+
+			extend(Modal.prototype,{
+				_layout:html2node(template),
+				//标题内容设置函数
+				setContent:function(head,content) {
+					var head = head || '标题',
+						content = content || '内容';
+
+					this.head.textContent = head;
+					this.body.textContent = content;
+				},
+				//显示
+				show:function(head,content) {
+					//传入标题和内容，可以更改显示内容，要求同时传入。
+					if(head && content) this.setContent(head,content)
+
+					document.body.appendChild(this.container)
+
+					document.body.appendChild(this.mask)
+				},
+				//关闭
+				hide:function() {
+					document.body.removeChild(this.container)
+					document.body.removeChild(this.mask)
+				},
+				//初始化函数
+				_init:function() {
+					//为2个按钮注册事件
+					this.container.querySelector('.confirm').addEventListener('click',this._onConfirm.bind(this));
+					this.container.querySelector('.cancel').addEventListener('click',this._onCancel.bind(this));
+					//设置标题、内容
+					this.setContent(this.headContent,this.content)
+					//创建遮罩,并为遮罩注册事件
+					this.mask = document.createElement('div');
+					this.mask.className = 'mask';
+					this.mask.addEventListener('click',this.hide.bind(this))
+				},
+				//触发confirm事件，关闭窗口
+				_onConfirm:function() {
+					this.emit('confirm')
+					this.hide()
+				},
+				//触发cancel事件，关闭窗口
+				_onCancel:function() {
+					this.emit('cancel');
+					this.hide()
+				}
+			})
+			//让modal具有事件发射器功能
+			extend(Modal.prototype,emitter)
+			//暴露接口
+			window.Modal = Modal;
+		})()
+
+
+		var modal = new Modal({
+			headContent:'我是标题', //内容标题可以自定义
+			content:'我是内容'
+		})
+		//注册'confirm/cancel'事件，自定义你的回调。
+		modal.on('confirm',function() {
+			console.log('confirm!!!!!')
+		})
+		modal.on('cancel',function(){
+			console.log('cancel!!!')
+		})
+
+		document.querySelector('.showmodal').addEventListener('click',function() {
+			modal.show(); //执行show函数时，也可以传入内容和标题，会覆盖之前的内容标题，不传则为默认值
+
+		})
+
+	</script>
+</body>
+</html>
