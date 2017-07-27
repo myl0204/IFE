@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML作业2</title>
+    <style>
+    	/*table{
+    		border:1px solid #000;
+    	}*/
+    	td{
+    		text-align: center;
+    	}
+    	tr{
+    		height: 30px
+    	}
+    	th{
+    		position:relative;width: 100px;background-color: #5c5c5c;color: #fff;
+    	}
+			.arrowTop{
+				position:absolute;top:5px;margin-left: 5px;display: inline-block; width: 0;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-bottom: 8px solid #fff;
+			}
+			.arrowBottom {
+				position:absolute;bottom:5px;margin-left: 5px;display: inline-block; width: 0;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-top: 8px solid #fff;
+			}
+			input:first-child{
+				width: 300px;
+			}
+    </style>
+</head>
+<body>
+  <input type="text" placeholder="输入表头信息，如姓名：0，语文：1"><button>确认</button></br>
+  <input type="checkbox">
+  <script>
+  	
+  	var a = {
+  		'姓名':0,
+  		'语文':1,
+  		'数学':1,
+  		'总分':0
+  	};
+  	
+  	(function() {
+			//时间发射器emitter
+			var emitter = {
+				//注册事件
+				on:function(event,listener) {
+					var handler = this._handler || (this._handler = {}),
+						cb = handler[event] || (handler[event] = []);
+					cb.push(listener)
+				},
+				//解绑事件
+				off:function(event,listener) {
+					//如果没传任何参数，解绑所有事件
+					if(!event || !this._handler){
+						this._handler = {};
+						return this
+					} 
+					var handler = this._handler;
+
+					if(cb = handler[event]){
+						//如果不指定回调函数，则删除该事件及所有回调。
+						if(!listener) {
+							delete handler[event];
+							return this
+						}
+						//找到事件相应的回调，删除。
+						for(var i = 0 ; i < cb.length ; i++) {
+							if(cb[i] == listener || cb[i].listener == listener) {
+								cb.splice(i,1)
+								return this;
+							}
+						}
+					}
+					return this
+				},
+				//触发事件
+				emit:function(event) {
+					var handler = this._handler,args = [].slice.call(arguments,1);
+					if(!handler || !event || !(cb=handler[event])) return this;
+
+					for(var i = 0 ; i < cb.length ; i++) {
+						cb[i].apply(this,args)
+					}
+					return this
+				},
+				//注册单次事件
+				once:function(event,listener) {
+					var context = this;
+					//on函数，解绑事件以及执行回调。
+					function on() {
+						context.off(event,on);
+						listener.apply(this,arguments)
+					}
+					//把回调挂在在到on上
+					on.listener = listener
+					//注册事件，添加on为回调
+					this.on(event,on)
+
+					return this;
+				}
+			}
+
+			/**
+			 * [extend 简单的属性赋值，不覆盖目标对象中和源对象相同部分]
+			 * @param  {Object} target [目标对象]
+			 * @param  {Object} source [源对象]
+			 * @return {Object}        [目标对象]
+			 */
+			function extend(target,source) {
+				for(var k in source) {
+					if(typeof target[k] === 'undefined') {
+						target[k] = source[k]
+					}
+				}
+				return target;
+			}
+
+
+			/**
+			 * [html2node 将html转换成节点]
+			 * @param  {String} str [模板字符串]
+			 * @return {HTMLelement} [元素节点]
+			 */
+			function html2node(str) {
+				var container = document.createElement('div');
+				container.innerHTML = str;
+				// console.log(container.children[0])
+				return container.children[0]
+			}
+			//表格初始模板
+			var template = `
+				<div>
+			  	<table rules="all" frame="border">
+			  		<thead>
+			  			<tr>
+
+			  			</tr>
+			  		</thead>
+			  		<tbody>
+			  		</tbody>
+			  	</table>
+			  </div>`
+
+			//表格组件
+			function Table(headobj) {	
+
+				this.headArr = this.transArr(headobj)
+
+				this.rowLength = this.headArr.length;
+
+				// this.headTemplate = this.ArrToTemplate(this.headArr)
+
+				this.container = this._layout.cloneNode(true)
+
+				this.head = this.container.getElementsByTagName('thead')[0]
+
+				this.tbody = this.container.getElementsByTagName('tbody')[0]
+
+				// this.head.firstElementChild.innerHTML = this.headTemplate
+
+				this.init()
+
+			}
+
+			
+
+			extend(Table.prototype,{
+				_layout:html2node(template),
+				//将传进来的参数转换成数组形式
+				transArr:function(obj) {
+					var arr = [];
+					for(var k in obj) {
+						if(a[k] == 0) {
+							arr.push(k)
+						}else{
+							arr.push(k+'<div class="arrowTop" data-id="1"></div><div class="arrowBottom" data-id="1"></div>')
+						}
+					}
+					return arr;
+				},
+				//自动添加标签
+				pad:function(str,tag){
+					return `<${tag}>${str}</${tag}>`
+				},
+				//将arr转换成字符串模板
+				ArrToTemplate:function(arr,tag) {
+					var template = '';
+					for(var i = 0; i < arr.length; i++) {
+						template += this.pad(arr[i],tag)
+					}
+					return template;
+				},
+				//初始化函数
+				init:function() {
+					//将头部模板填充到头部的tr标签中
+					this.head.firstElementChild.innerHTML = this.ArrToTemplate(this.headArr,'th')
+					//在页面中显示表格
+					document.body.appendChild(this.container)
+				},
+				//添加表格行
+				add:function(dataArr) {
+					var tr = document.createElement('tr')
+					tr.innerHTML = this.ArrToTemplate(dataArr,'td')
+					this.tbody.appendChild(tr)
+				}
+
+			})
+
+
+
+
+			window.Table = Table
+
+		})()
+		var input = document.getElementsByTagName('input')[0];
+
+		document.getElementsByTagName('button')[0].addEventListener('click',function(){
+			var sourceHeadArr = input.value.split(',')
+			var msg = document.createElement('p')
+			msg.innerHTML = '请选择要排序的列项'
+			document.body.appendChild(msg)
+			
+		})
+  </script>
+</body>
+</html>
