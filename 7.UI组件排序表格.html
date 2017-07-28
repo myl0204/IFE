@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>HTML作业2</title>
+    <title>排序表格</title>
     <style>
     	/*table{
     		border:1px solid #000;
@@ -22,83 +22,16 @@
 			.arrowBottom {
 				position:absolute;bottom:5px;margin-left: 5px;display: inline-block; width: 0;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-top: 8px solid #fff;
 			}
-			input:first-child{
+			#inputHead{
 				width: 300px;
 			}
     </style>
 </head>
 <body>
-  <input type="text" placeholder="输入表头信息，如姓名：0，语文：1"><button>确认</button></br>
-  <input type="checkbox">
+  <input id="inputHead" type="text" placeholder="输入表头信息，如姓名：0，语文：1"><button>确认</button></br>
   <script>
-  	
-  	var a = {
-  		'姓名':0,
-  		'语文':1,
-  		'数学':1,
-  		'总分':0
-  	};
-  	
+  
   	(function() {
-			//时间发射器emitter
-			var emitter = {
-				//注册事件
-				on:function(event,listener) {
-					var handler = this._handler || (this._handler = {}),
-						cb = handler[event] || (handler[event] = []);
-					cb.push(listener)
-				},
-				//解绑事件
-				off:function(event,listener) {
-					//如果没传任何参数，解绑所有事件
-					if(!event || !this._handler){
-						this._handler = {};
-						return this
-					} 
-					var handler = this._handler;
-
-					if(cb = handler[event]){
-						//如果不指定回调函数，则删除该事件及所有回调。
-						if(!listener) {
-							delete handler[event];
-							return this
-						}
-						//找到事件相应的回调，删除。
-						for(var i = 0 ; i < cb.length ; i++) {
-							if(cb[i] == listener || cb[i].listener == listener) {
-								cb.splice(i,1)
-								return this;
-							}
-						}
-					}
-					return this
-				},
-				//触发事件
-				emit:function(event) {
-					var handler = this._handler,args = [].slice.call(arguments,1);
-					if(!handler || !event || !(cb=handler[event])) return this;
-
-					for(var i = 0 ; i < cb.length ; i++) {
-						cb[i].apply(this,args)
-					}
-					return this
-				},
-				//注册单次事件
-				once:function(event,listener) {
-					var context = this;
-					//on函数，解绑事件以及执行回调。
-					function on() {
-						context.off(event,on);
-						listener.apply(this,arguments)
-					}
-					//把回调挂在在到on上
-					on.listener = listener
-					//注册事件，添加on为回调
-					this.on(event,on)
-
-					return this;
-				}
-			}
 
 			/**
 			 * [extend 简单的属性赋值，不覆盖目标对象中和源对象相同部分]
@@ -146,17 +79,11 @@
 
 				this.headArr = this.transArr(headobj)
 
-				this.rowLength = this.headArr.length;
-
-				// this.headTemplate = this.ArrToTemplate(this.headArr)
-
 				this.container = this._layout.cloneNode(true)
 
 				this.head = this.container.getElementsByTagName('thead')[0]
 
 				this.tbody = this.container.getElementsByTagName('tbody')[0]
-
-				// this.head.firstElementChild.innerHTML = this.headTemplate
 
 				this.init()
 
@@ -168,12 +95,13 @@
 				_layout:html2node(template),
 				//将传进来的参数转换成数组形式
 				transArr:function(obj) {
-					var arr = [];
+					var arr = [],count = -1
 					for(var k in obj) {
-						if(a[k] == 0) {
+						count ++
+						if(obj[k] == 0) {
 							arr.push(k)
 						}else{
-							arr.push(k+'<div class="arrowTop" data-id="1"></div><div class="arrowBottom" data-id="1"></div>')
+							arr.push(k+`<div class="arrowTop" data-id=\"${count}\"></div><div class="arrowBottom" data-id=\"${count}\"></div>`)
 						}
 					}
 					return arr;
@@ -196,31 +124,111 @@
 					this.head.firstElementChild.innerHTML = this.ArrToTemplate(this.headArr,'th')
 					//在页面中显示表格
 					document.body.appendChild(this.container)
+					//排序按钮
+					var top = this.head.getElementsByClassName('arrowTop');
+
+					this.head.addEventListener('click',this.sort.bind(this))
 				},
 				//添加表格行
 				add:function(dataArr) {
-					var tr = document.createElement('tr')
+					var tr = document.createElement('tr') 
 					tr.innerHTML = this.ArrToTemplate(dataArr,'td')
 					this.tbody.appendChild(tr)
-				}
+				},
+				//排序
+				sort:function(event) {
+					if(event.target.className == 'arrowTop' || event.target.className == 'arrowBottom'){
+						var trs = this.tbody.getElementsByTagName('tr'),
+							obj = {},
+							objrepeat = {},
+							numberArr = [],
+							index = event.target.dataset.id;
+						for(var i = 0; i< trs.length;i++) {
+							numberArr.push(trs[i].children[index].textContent);
+							if( !obj[numberArr[i]]){
+								obj[numberArr[i]] = [trs[i].innerHTML]	
+							}else{
+								obj[numberArr[i]].push(trs[i].innerHTML)
+							}
+						}
+						//判断升序还是降序
+						if(event.target.className == 'arrowTop') {
+							numberArr.sort(function(a,b){
+								return a-b
+							})
+						}else{
+							numberArr.sort(function(a,b){
+								return b-a
+							})
+						}
+						//模板填充节点
+						for(var i = 0 ; i < trs.length ; i++) {
+							if(obj[numberArr[i]].length>1) {
+								obj[numberArr[i]].forEach(function(value,index){
+									trs[i+index].innerHTML = value
+								})
+								i = i+obj[numberArr[i]].length-1;
+							}else{
+								trs[i].innerHTML = obj[numberArr[i]][0]
+							}
+						}
+					}
+				},
+			});
 
-			})
-
-
-
-
-			window.Table = Table
+			window.Table = Table;
 
 		})()
-		var input = document.getElementsByTagName('input')[0];
+		var input = document.getElementById('inputHead');
 
-		document.getElementsByTagName('button')[0].addEventListener('click',function(){
-			var sourceHeadArr = input.value.split(',')
-			var msg = document.createElement('p')
-			msg.innerHTML = '请选择要排序的列项'
+		var btn = document.getElementsByTagName('button')[0];
+		btn.addEventListener('click',init);
+
+		function init(){
+			//将输入的字符串转换成数组
+			var value = input.value.replace(/，/g,','),
+				inputArr = value.split(','), //含有表头信息的数组
+				msg = document.createElement('p'),//提示段落
+				templateChoice = "",//选择项模板
+				choiceDiv = document.createElement('div'),//选择项所在DIV
+				headobj = {}//要传入Table的表头对象
+			msg.textContent = '请选择要排序的列项'
 			document.body.appendChild(msg)
-			
-		})
+			//表头信息写入选项模板
+			for(var i = 0;i<inputArr.length;i++) {
+				 templateChoice += `<input type="checkbox" id=\"choice-${i}\"><label for=\"choice-${i}\">${inputArr[i]}</label>`
+			}
+			templateChoice += ` <button>确认</button>`
+			choiceDiv.innerHTML = templateChoice;
+			choiceDiv.id = 'choice'
+			document.body.appendChild(choiceDiv)
+			//移除初始事件
+			btn.removeEventListener('click',init)
+			//确认排序选项
+			var choices = choiceDiv.getElementsByTagName('input'),
+				btn2 = choiceDiv.getElementsByTagName('button')[0];
+			btn2.addEventListener('click',function() {
+				for(var i = 0; i < choices.length; i++) {
+					if(choices[i].checked ) {
+						headobj[inputArr[i]] = 1
+					}else {
+						headobj[inputArr[i]] = 0
+					}
+				}
+				var table = new Table(headobj)
+				document.body.removeChild(choiceDiv)
+				msg.textContent = '请在上面输入框中输入数据'
+				input.value = ""
+				input.placeholder = "输入数据"
+				btn.addEventListener('click',function(){
+					inputArr = input.value.split(';')
+					for(var i = 0 ; i < inputArr.length; i++) {
+						table.add(inputArr[i].split(','))
+					}
+				})
+			})
+		}
+
   </script>
 </body>
 </html>
